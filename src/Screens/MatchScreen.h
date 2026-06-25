@@ -3,8 +3,10 @@
 class MatchScreen
 {
 public:
+    MatchScreen();
 
-    void update();
+    int getBackground() const;
 
-    void render();
+private:
+    int m_background;
 };

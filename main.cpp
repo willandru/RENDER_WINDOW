@@ -1,6 +1,8 @@
 #include "Window.h"
 #include "Renderer.h"
 #include "Shader.h"
+#include "Input.h"
+#include "ScreenManager.h"
 
 int main()
 {
@@ -10,20 +12,31 @@ int main()
         "RENDER_WINDOW"
     );
 
-    Shader shader(
-    "Debug/basic.vert",
-    "Debug/basic.frag"
-    );
+    glViewport(0, 0, 1280, 720); 
 
     Renderer renderer;
+    Input input;
+    ScreenManager screenManager;
 
-    while (!window.shouldClose())
+    Shader shader(
+        "Debug/basic.vert",
+        "Debug/basic.frag"
+    );
+
+    screenManager.setShader(&shader);
+
+    while (!window.shouldClose() && !screenManager.shouldExit())
     {
         window.pollEvents();
 
-        window.clear();
+        input.update(window.getNativeWindow());
+        screenManager.update(input);
 
-        renderer.draw(shader);
+        renderer.begin();
+
+        screenManager.render(renderer);
+
+        renderer.end();
 
         window.display();
     }

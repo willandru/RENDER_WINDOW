@@ -1,6 +1,14 @@
 #pragma once
 
+#include <glad/glad.h>
+
 class Shader;
+
+struct DrawRectCommand
+{
+    float x, y, w, h;
+    float r, g, b;
+};
 
 class Renderer
 {
@@ -8,7 +16,10 @@ public:
     Renderer();
     ~Renderer();
 
-    void draw(const Shader& shader);
+    void begin();
+    void end();
+
+    void drawRect(const DrawRectCommand& cmd, const Shader& shader);
 
 private:
     unsigned int m_vao;

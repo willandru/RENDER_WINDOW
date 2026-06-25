@@ -3,8 +3,10 @@
 class OneScreen
 {
 public:
+    OneScreen();
 
-    void update();
+    int getBackground() const;
 
-    void render();
+private:
+    int m_background;
 };

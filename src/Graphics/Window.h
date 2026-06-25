@@ -14,6 +14,8 @@ public:
     void clear();
     void display();
 
+    GLFWwindow* getNativeWindow() const;
+
 private:
     GLFWwindow* m_window;
 };
