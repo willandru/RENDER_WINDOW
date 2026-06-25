@@ -33,3 +33,17 @@ target_link_libraries(RENDER_WINDOW PRIVATE
 if(WIN32)
     target_link_libraries(RENDER_WINDOW PRIVATE opengl32)
 endif()
+
+add_custom_command(
+    TARGET RENDER_WINDOW POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/src/basic.vert
+        $<TARGET_FILE_DIR:RENDER_WINDOW>/basic.vert
+)
+
+add_custom_command(
+    TARGET RENDER_WINDOW POST_BUILD
+    COMMAND ${CMAKE_COMMAND} -E copy_if_different
+        ${CMAKE_SOURCE_DIR}/src/basic.frag
+        $<TARGET_FILE_DIR:RENDER_WINDOW>/basic.frag
+)
