@@ -1,27 +1,24 @@
 #pragma once
 
-#include <glad/glad.h>
-
 class Shader
 {
 public:
-
-    Shader();
+    Shader(
+        const char* vertexPath,
+        const char* fragmentPath
+    );
 
     ~Shader();
 
-    bool create(
-        const char* vertexShaderPath,
-        const char* fragmentShaderPath
-    );
-
     void use() const;
 
-    GLuint getProgram() const;
-
-    void destroy();
+    unsigned int getProgram() const;
 
 private:
+    unsigned int m_program;
 
-    GLuint m_program;
+    char* loadFile(
+        const char* path,
+        int& size
+    );
 };

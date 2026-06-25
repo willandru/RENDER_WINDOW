@@ -1,31 +1,33 @@
 #include "Renderer.h"
 
+#include "Shader.h"
+
+#include <glad/glad.h>
+
 Renderer::Renderer()
     : m_vao(0),
-      m_vbo(0)
+      m_vbo(0),
+      m_ebo(0)
 {
-}
+    const float vertices[] =
+    {
+        -0.5f, -0.5f,
+         0.5f, -0.5f,
+         0.5f,  0.5f,
+        -0.5f,  0.5f
+    };
 
-Renderer::~Renderer()
-{
-    destroy();
-}
+    const unsigned int indices[] =
+    {
+        0, 1, 2,
+        2, 3, 0
+    };
 
-bool Renderer::create()
-{
-    glGenVertexArrays(
-        1,
-        &m_vao
-    );
+    glGenVertexArrays(1, &m_vao);
+    glGenBuffers(1, &m_vbo);
+    glGenBuffers(1, &m_ebo);
 
-    glGenBuffers(
-        1,
-        &m_vbo
-    );
-
-    glBindVertexArray(
-        m_vao
-    );
+    glBindVertexArray(m_vao);
 
     glBindBuffer(
         GL_ARRAY_BUFFER,
@@ -34,9 +36,21 @@ bool Renderer::create()
 
     glBufferData(
         GL_ARRAY_BUFFER,
-        sizeof(float) * 12,
-        nullptr,
-        GL_DYNAMIC_DRAW
+        sizeof(vertices),
+        vertices,
+        GL_STATIC_DRAW
+    );
+
+    glBindBuffer(
+        GL_ELEMENT_ARRAY_BUFFER,
+        m_ebo
+    );
+
+    glBufferData(
+        GL_ELEMENT_ARRAY_BUFFER,
+        sizeof(indices),
+        indices,
+        GL_STATIC_DRAW
     );
 
     glVertexAttribPointer(
@@ -48,107 +62,41 @@ bool Renderer::create()
         nullptr
     );
 
-    glEnableVertexAttribArray(
-        0
-    );
+    glEnableVertexAttribArray(0);
 
-    return true;
+    glBindVertexArray(0);
 }
 
-void Renderer::destroy()
+Renderer::~Renderer()
 {
-    if (m_vbo)
-    {
-        glDeleteBuffers(
-            1,
-            &m_vbo
-        );
-
-        m_vbo = 0;
-    }
-
-    if (m_vao)
-    {
-        glDeleteVertexArrays(
-            1,
-            &m_vao
-        );
-
-        m_vao = 0;
-    }
+    glDeleteBuffers(1, &m_ebo);
+    glDeleteBuffers(1, &m_vbo);
+    glDeleteVertexArrays(1, &m_vao);
 }
 
-void Renderer::drawRectangle(
-    GLuint shaderProgram,
-    float x,
-    float y,
-    float width,
-    float height,
-    int windowWidth,
-    int windowHeight,
-    float r,
-    float g,
-    float b)
+void Renderer::draw(const Shader& shader)
 {
-    float left =
-        (x / windowWidth) * 2.0f - 1.0f;
-
-    float right =
-        ((x + width) / windowWidth) * 2.0f - 1.0f;
-
-    float top =
-        1.0f - (y / windowHeight) * 2.0f;
-
-    float bottom =
-        1.0f - ((y + height) / windowHeight) * 2.0f;
-
-    float vertices[] =
-    {
-        left,  top,
-        right, top,
-        right, bottom,
-
-        left,  top,
-        right, bottom,
-        left,  bottom
-    };
-
-    glBindBuffer(
-        GL_ARRAY_BUFFER,
-        m_vbo
-    );
-
-    glBufferSubData(
-        GL_ARRAY_BUFFER,
-        0,
-        sizeof(vertices),
-        vertices
-    );
-
-    glUseProgram(
-        shaderProgram
-    );
+    shader.use();
 
     GLint colorLocation =
         glGetUniformLocation(
-            shaderProgram,
+            shader.getProgram(),
             "uColor"
         );
 
     glUniform3f(
         colorLocation,
-        r,
-        g,
-        b
+        0.2f,
+        0.7f,
+        1.0f
     );
 
-    glBindVertexArray(
-        m_vao
-    );
+    glBindVertexArray(m_vao);
 
-    glDrawArrays(
+    glDrawElements(
         GL_TRIANGLES,
-        0,
-        6
+        6,
+        GL_UNSIGNED_INT,
+        nullptr
     );
 }

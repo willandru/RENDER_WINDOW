@@ -1,42 +1,37 @@
 #include "Shader.h"
 
+#include <glad/glad.h>
+
+#include <fstream>
 #include <iostream>
 
-Shader::Shader()
+Shader::Shader(
+    const char* vertexPath,
+    const char* fragmentPath
+)
     : m_program(0)
 {
-}
+    int vertexSize = 0;
+    int fragmentSize = 0;
 
-Shader::~Shader()
-{
-    destroy();
-}
+    char* vertexSource =
+        loadFile(
+            vertexPath,
+            vertexSize
+        );
 
-bool Shader::create()
-{
-    const char* vertexShaderSource = R"(
-        #version 330 core
+    char* fragmentSource =
+        loadFile(
+            fragmentPath,
+            fragmentSize
+        );
 
-        layout(location = 0) in vec2 aPos;
-
-        void main()
-        {
-            gl_Position = vec4(aPos, 0.0, 1.0);
-        }
-    )";
-
-    const char* fragmentShaderSource = R"(
-        #version 330 core
-
-        out vec4 FragColor;
-
-        uniform vec3 uColor;
-
-        void main()
-        {
-            FragColor = vec4(uColor, 1.0);
-        }
-    )";
+    if (!vertexSource || !fragmentSource)
+    {
+        delete[] vertexSource;
+        delete[] fragmentSource;
+        return;
+    }
 
     GLuint vertexShader =
         glCreateShader(GL_VERTEX_SHADER);
@@ -44,13 +39,11 @@ bool Shader::create()
     glShaderSource(
         vertexShader,
         1,
-        &vertexShaderSource,
-        nullptr
+        const_cast<const char**>(&vertexSource),
+        &vertexSize
     );
 
-    glCompileShader(
-        vertexShader
-    );
+    glCompileShader(vertexShader);
 
     GLint success = 0;
 
@@ -62,7 +55,7 @@ bool Shader::create()
 
     if (!success)
     {
-        char infoLog[512];
+        char infoLog[1024];
 
         glGetShaderInfoLog(
             vertexShader,
@@ -75,25 +68,19 @@ bool Shader::create()
             << "Vertex shader error:\n"
             << infoLog
             << '\n';
-
-        return false;
     }
 
     GLuint fragmentShader =
-        glCreateShader(
-            GL_FRAGMENT_SHADER
-        );
+        glCreateShader(GL_FRAGMENT_SHADER);
 
     glShaderSource(
         fragmentShader,
         1,
-        &fragmentShaderSource,
-        nullptr
+        const_cast<const char**>(&fragmentSource),
+        &fragmentSize
     );
 
-    glCompileShader(
-        fragmentShader
-    );
+    glCompileShader(fragmentShader);
 
     glGetShaderiv(
         fragmentShader,
@@ -103,7 +90,7 @@ bool Shader::create()
 
     if (!success)
     {
-        char infoLog[512];
+        char infoLog[1024];
 
         glGetShaderInfoLog(
             fragmentShader,
@@ -116,12 +103,9 @@ bool Shader::create()
             << "Fragment shader error:\n"
             << infoLog
             << '\n';
-
-        return false;
     }
 
-    m_program =
-        glCreateProgram();
+    m_program = glCreateProgram();
 
     glAttachShader(
         m_program,
@@ -133,9 +117,7 @@ bool Shader::create()
         fragmentShader
     );
 
-    glLinkProgram(
-        m_program
-    );
+    glLinkProgram(m_program);
 
     glGetProgramiv(
         m_program,
@@ -145,7 +127,7 @@ bool Shader::create()
 
     if (!success)
     {
-        char infoLog[512];
+        char infoLog[1024];
 
         glGetProgramInfoLog(
             m_program,
@@ -158,41 +140,69 @@ bool Shader::create()
             << "Program link error:\n"
             << infoLog
             << '\n';
-
-        return false;
     }
 
-    glDeleteShader(
-        vertexShader
-    );
+    glDeleteShader(vertexShader);
+    glDeleteShader(fragmentShader);
 
-    glDeleteShader(
-        fragmentShader
-    );
+    delete[] vertexSource;
+    delete[] fragmentSource;
+}
 
-    return true;
+Shader::~Shader()
+{
+    if (m_program != 0)
+    {
+        glDeleteProgram(m_program);
+    }
 }
 
 void Shader::use() const
 {
-    glUseProgram(
-        m_program
-    );
+    glUseProgram(m_program);
 }
 
-GLuint Shader::getProgram() const
+unsigned int Shader::getProgram() const
 {
     return m_program;
 }
 
-void Shader::destroy()
+char* Shader::loadFile(
+    const char* path,
+    int& size
+)
 {
-    if (m_program)
-    {
-        glDeleteProgram(
-            m_program
-        );
+    std::ifstream file(
+        path,
+        std::ios::binary
+    );
 
-        m_program = 0;
+    if (!file.is_open())
+    {
+        std::cerr
+            << "Cannot open shader: "
+            << path
+            << '\n';
+
+        size = 0;
+        return nullptr;
     }
+
+    file.seekg(0, std::ios::end);
+
+    size = static_cast<int>(
+        file.tellg()
+    );
+
+    file.seekg(0, std::ios::beg);
+
+    char* buffer =
+        new char[size];
+
+    file.read(
+        buffer,
+        size
+    );
+
+    return buffer;
 }

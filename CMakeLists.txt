@@ -17,9 +17,16 @@ target_include_directories(glad PUBLIC
 
 add_executable(RENDER_WINDOW
     main.cpp
+
+    src/Graphics/Window.cpp
+    src/Graphics/Renderer.cpp
+    src/Graphics/Shader.cpp
 )
 
 target_include_directories(RENDER_WINDOW PRIVATE
+    src
+    src/Graphics
+
     externals/glad/include
     externals/glfw-3.4/include
     externals/glm
@@ -31,19 +38,21 @@ target_link_libraries(RENDER_WINDOW PRIVATE
 )
 
 if(WIN32)
-    target_link_libraries(RENDER_WINDOW PRIVATE opengl32)
+    target_link_libraries(RENDER_WINDOW PRIVATE
+        opengl32
+    )
 endif()
 
 add_custom_command(
     TARGET RENDER_WINDOW POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/src/basic.vert
+        ${CMAKE_SOURCE_DIR}/src/Graphics/Shaders/basic.vert
         $<TARGET_FILE_DIR:RENDER_WINDOW>/basic.vert
 )
 
 add_custom_command(
     TARGET RENDER_WINDOW POST_BUILD
     COMMAND ${CMAKE_COMMAND} -E copy_if_different
-        ${CMAKE_SOURCE_DIR}/src/basic.frag
+        ${CMAKE_SOURCE_DIR}/src/Graphics/Shaders/basic.frag
         $<TARGET_FILE_DIR:RENDER_WINDOW>/basic.frag
 )

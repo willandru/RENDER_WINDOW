@@ -5,28 +5,15 @@ struct GLFWwindow;
 class Window
 {
 public:
-
-    Window();
-
+    Window(int width, int height, const char* title);
     ~Window();
-
-    bool create(
-        int width,
-        int height,
-        const char* title
-    );
 
     bool shouldClose() const;
 
     void pollEvents();
-
-    void swapBuffers();
-
-    void destroy();
-
-    GLFWwindow* getNativeWindow() const;
+    void clear();
+    void display();
 
 private:
-
     GLFWwindow* m_window;
 };

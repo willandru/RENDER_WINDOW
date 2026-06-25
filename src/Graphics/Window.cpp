@@ -5,93 +5,55 @@
 
 #include <iostream>
 
-Window::Window()
+Window::Window(int width, int height, const char* title)
     : m_window(nullptr)
 {
+    if (!glfwInit())
+    {
+        std::cerr << "ERROR: glfwInit() failed\n";
+        return;
+    }
+
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+
+    m_window = glfwCreateWindow(width, height, title, nullptr, nullptr);
+
+    if (!m_window)
+    {
+        std::cerr << "ERROR: glfwCreateWindow() failed\n";
+        glfwTerminate();
+        return;
+    }
+
+    glfwMakeContextCurrent(m_window);
+
+    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    {
+        std::cerr << "ERROR: gladLoadGLLoader() failed\n";
+        glfwDestroyWindow(m_window);
+        glfwTerminate();
+        m_window = nullptr;
+        return;
+    }
+
+    glViewport(0, 0, width, height);
 }
 
 Window::~Window()
 {
-    destroy();
-}
-
-bool Window::create(
-    int width,
-    int height,
-    const char* title)
-{
-    if (!glfwInit())
+    if (m_window)
     {
-        std::cerr
-            << "GLFW initialization failed\n";
-
-        return false;
+        glfwDestroyWindow(m_window);
     }
 
-    glfwWindowHint(
-        GLFW_CONTEXT_VERSION_MAJOR,
-        3
-    );
-
-    glfwWindowHint(
-        GLFW_CONTEXT_VERSION_MINOR,
-        3
-    );
-
-    glfwWindowHint(
-        GLFW_OPENGL_PROFILE,
-        GLFW_OPENGL_CORE_PROFILE
-    );
-
-    m_window =
-        glfwCreateWindow(
-            width,
-            height,
-            title,
-            nullptr,
-            nullptr
-        );
-
-    if (!m_window)
-    {
-        std::cerr
-            << "Window creation failed\n";
-
-        glfwTerminate();
-
-        return false;
-    }
-
-    glfwMakeContextCurrent(
-        m_window
-    );
-
-    if (!gladLoadGLLoader(
-        (GLADloadproc)
-        glfwGetProcAddress))
-    {
-        std::cerr
-            << "GLAD initialization failed\n";
-
-        glfwDestroyWindow(
-            m_window
-        );
-
-        glfwTerminate();
-
-        m_window = nullptr;
-
-        return false;
-    }
-
-    return true;
+    glfwTerminate();
 }
 
 bool Window::shouldClose() const
 {
-    return glfwWindowShouldClose(
-        m_window
-    );
+    return !m_window || glfwWindowShouldClose(m_window);
 }
 
 void Window::pollEvents()
@@ -99,28 +61,13 @@ void Window::pollEvents()
     glfwPollEvents();
 }
 
-void Window::swapBuffers()
+void Window::clear()
 {
-    glfwSwapBuffers(
-        m_window
-    );
+    glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT);
 }
 
-void Window::destroy()
+void Window::display()
 {
-    if (m_window)
-    {
-        glfwDestroyWindow(
-            m_window
-        );
-
-        m_window = nullptr;
-    }
-
-    glfwTerminate();
-}
-
-GLFWwindow* Window::getNativeWindow() const
-{
-    return m_window;
+    glfwSwapBuffers(m_window);
 }
